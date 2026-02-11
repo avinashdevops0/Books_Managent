@@ -6,7 +6,7 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: bookstore
+      # MYSQL_DATABASE: bookstore
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_USER_PASSWORD}
     healthcheck:
@@ -18,10 +18,10 @@ services:
       - books-net
     volumes:
       - book-db-vol:/var/lib/mysql
-      - ./database/booksstore.sql:/docker-entrypoint-initdb.d/booksstore.sql
+      - ./database/bookstore.sql:/docker-entrypoint-initdb.d/bookstore.sql
 
   app:
-    build: .
+    build: ./
     image: avinashg0/books:latest
     restart: always
     environment:

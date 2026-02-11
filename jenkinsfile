@@ -1,37 +1,51 @@
 pipeline {
     agent any 
+    
     environment {
-        IMAGE_NAME = "books"
-        MYSQL_ROOT_PASSWORD = credentials('MYSQL_ROOT_PASSWORD')
-        MYSQL_USER = credentials('MYSQL_USER')
-        MYSQL_USER_PASSWORD = credentials('MYSQL_USER_PASSWORD')
+        DOCKERHUB_CREDENTIALS   = "Docker"     // Jenkins credential ID
+        MYSQL_ROOT_PASSWORD     = credentials('MYSQL_ROOT_PASSWORD')
+        MYSQL_USER              = credentials('MYSQL_USER')
+        MYSQL_USER_PASSWORD     = credentials('MYSQL_USER_PASSWORD')
     }
+
     stages {
+
         stage ("Clean Workspace") {
             steps {
                 cleanWs()
             }
         }
-        stage ("Code") {
+
+        stage ("Checkout Code") {
             steps {
-                git branch: 'books', url: 'https://github.com/avinashdevops0/Books_Managent.git'
+                git branch: 'books', 
+                    url: 'https://github.com/avinashdevops0/Books_Managent.git'
             }
         }
-        stage ("Build") {
-            steps{
+
+        stage ("Build Images") {
+            steps {
                 sh "docker-compose build"
             }
         }
-        stage ("Image Tag and push") {
-            steps{
-                
+
+        stage ("Login & Push Images") {
+            steps {
+                withDockerRegistry(credentialsId: "${DOCKERHUB_CREDENTIALS}", 
+                                   url: 'https://index.docker.io/v1/') {
+
+                    sh "docker-compose push"
+                }
             }
         }
+
         stage ("Deploy") {
-            steps{
-                
+            steps {
+                sh """
+                docker-compose down || true
+                docker-compose up -d
+                """
             }
         }
     }
-
 }
