@@ -65,62 +65,72 @@
 version: "3.8"
 
 services:
+
   books-db:
     image: mysql:8
-    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      # MYSQL_DATABASE: bookstore
+      MYSQL_DATABASE: bookstore
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_USER_PASSWORD}
+    volumes:
+      - book-db-vol:/var/lib/mysql
+      - ./database/bookstore.sql:/docker-entrypoint-initdb.d/bookstore.sql
+    networks:
+      - books-net
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - books-net
-    volumes:
-      - book-db-vol:/var/lib/mysql
-      - ./database/bookstore.sql:/docker-entrypoint-initdb.d/bookstore.sql
 
   app:
-    build: ./
-    image: books
-    restart: always
+    # Use dynamic tag from Jenkins
+    image: avinashg0/books:${IMAGE_TAG}
     environment:
       DB_HOST: books-db
       DB_USER: ${MYSQL_USER}
       DB_PASSWORD: ${MYSQL_USER_PASSWORD}
       DB_NAME: bookstore
       PORT: 3000
+    networks:
+      - books-net
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+      update_config:
+        parallelism: 1
+        delay: 10s
     healthcheck:
       test: ["CMD", "wget", "--spider", "http://localhost:3000"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-    depends_on:
-      - books-db
-        # condition: service_healthy
-    networks:
-      - books-net
-
   nginx:
     image: nginx:alpine
-    restart: always
     ports:
       - "80:80"
-    depends_on:
-      - app
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - books-net
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    depends_on:
+      - app
 
 volumes:
   book-db-vol:
 
 networks:
   books-net:
-    driver: overly
+    driver: overlay
+
