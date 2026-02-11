@@ -22,7 +22,7 @@ services:
 
   app:
     build: ./
-    image: avinashg0/books:latest
+    image: books
     restart: always
     environment:
       DB_HOST: books-db
