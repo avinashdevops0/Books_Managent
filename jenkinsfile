@@ -1,0 +1,37 @@
+pipeline {
+    agent any 
+    environment {
+        IMAGE_NAME = "books"
+        MYSQL_ROOT_PASSWORD = credentials('MYSQL_ROOT_PASSWORD')
+        MYSQL_USER = credentials('MYSQL_USER')
+        MYSQL_USER_PASSWORD = credentials('MYSQL_USER_PASSWORD')
+    }
+    stages {
+        stage ("Clean Workspace") {
+            steps {
+                cleanWs()
+            }
+        }
+        stage ("Code") {
+            steps {
+                git branch: 'books', url: 'https://github.com/avinashdevops0/Books_Managent.git'
+            }
+        }
+        stage ("Build") {
+            steps{
+                sh "docker-compose build"
+            }
+        }
+        stage ("Image Tag and push") {
+            steps{
+                
+            }
+        }
+        stage ("Deploy") {
+            steps{
+                
+            }
+        }
+    }
+
+}
