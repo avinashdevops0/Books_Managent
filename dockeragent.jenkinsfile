@@ -1,0 +1,18 @@
+💡 Alternative (Better) Solution – Use Docker Agent
+
+Instead of installing system libraries on Jenkins, you can run your pipeline inside a Node container:
+
+pipeline {
+    agent {
+        docker {
+            image 'node:20'
+        }
+    }
+    stages {
+        stage('Install') {
+            steps {
+                sh 'npm install'
+            }
+        }
+    }
+}

@@ -22,6 +22,24 @@ pipeline {
                     url: 'https://github.com/avinashdevops0/Books_Managent.git'
             }
         }
+        
+        stage('SonarQube analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'books'
+                    withSonarQubeEnv('books') {
+                        sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                          -Dsonar.projectKey=Books_Manager \
+                          -Dsonar.projectName=Books_Manager \
+                          -Dsonar.sources=. \
+                          -Dsonar.java.binaries=.
+                        """
+                    }
+                }
+            }
+        }
+
 
         stage ("Build Images") {
             steps {
